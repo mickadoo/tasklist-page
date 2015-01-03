@@ -1,6 +1,7 @@
 <form id = "edit-task-form">
-    <input type="text" id="new-task-name" name="name" value="{{ task.name }}">
-    <select name = "difficulty" id="new-task-difficulty">
+    <input type="text" id="edit-task-name" name="name" value="{{ task.name }}">
+    <input type="hidden" id="edit-task-id" name="id" value="{{ task.id }}">
+    <select name = "difficulty" id="edit-task-difficulty">
         <option>1</option>
         <option>2</option>
         <option>3</option>
