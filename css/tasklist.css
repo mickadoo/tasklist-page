@@ -1,0 +1,18 @@
+* {
+    margin: 0;
+    padding: 0;
+    transition: all 0.3s ease, background-position 1ms;
+}
+
+
+
+/* colors */
+.red {
+    background-color : rgb(250, 150, 150);
+}
+.blue {
+    background-color : rgb(150, 150, 250);
+}
+.green {
+    background-color : rgb(150, 250, 150);
+}
