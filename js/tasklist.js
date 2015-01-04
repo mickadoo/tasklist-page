@@ -126,6 +126,7 @@ function showCreateMilestoneForm($row){
         $.get('/elements/add_milestone_form.html', function (data) {
             data = data.replace('{{ task.id }}', $row.attr('data-id'));
             $row.append(data);
+            $('#new-milestone-name').focus();
         });
     }
 }
