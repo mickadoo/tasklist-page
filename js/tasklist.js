@@ -5,6 +5,15 @@ $(document).ready(function(){
 
     showAllTasks();
 
+    // ### switch tab listeners ###
+    $('#show-tasks-tab-button').click(function(){
+        showAllTasks();
+    });
+
+    $('#show-rewards-tab-button').click(function(){
+        showAllDueRewards();
+    });
+
     // ### show create-new form listeners ###
 
     $('#show-add-task-button').click(function(){
@@ -228,8 +237,34 @@ function getMilestonesForTask($row){
     }
 }
 
-function showDueRewards(){
-    // todo show rewards
+function showAllDueRewards(){
+    $('#task-container').html('');
+    $.ajax(
+        {
+            url:"http://api.tasklist.dev/reward/get-complete/",
+            dataType: "json",
+            type : 'GET',
+            success:function(result){
+                if (result.data) {
+                    var rewards = result.data;
+                    $.each(rewards, function(index, reward){
+                        console.log(reward);
+                        var row = '<div id = "reward-row-{{ reward.milestoneId }}" data-id = "{{ reward.milestoneId }}" class = "row reward"><span class = "reward-name">{{ reward.name }}</span><span class = "reward-budget">{{ reward.budget }}</span></div>';
+                        row = row.replace('{{ reward.milestoneId }}', reward.milestoneId);
+                        row = row.replace('{{ reward.milestoneId }}', reward.milestoneId);
+                        row = row.replace('{{ reward.name }}', reward.name);
+                        row = row.replace('{{ reward.budget }}', reward.budget);
+                        $('#task-container').append(row);
+                    });
+                } else {
+                    $('#task-container').html('No rewards available');
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.log(errorThrown);
+            }
+        }
+    );
 }
 
 // ### post ###
