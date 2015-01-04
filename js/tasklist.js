@@ -20,33 +20,39 @@ $(document).ready(function(){
         showCreateNewTaskForm();
     });
 
-    $('#task-container').on('click', '.task.row .show-milestone-form-button',function(event){
+    $('#task-container').on('click', '.task.row .show-milestone-form-button',function(){
         $row = $(this).parent('.row');
         showCreateMilestoneForm($row);
     });
 
     // ### show edit form listeners ###
 
-    $('#task-container').on('click', '.task.row .edit-task-button',function(event){
+    $('#task-container').on('click', '.task.row .edit-task-button',function(){
         $row = $(this).parent('.row');
         replaceTaskRowWithEditForm($row);
     });
 
-    $('#task-container').on('click', '.milestone.row .edit-milestone-button',function(event){
+    $('#task-container').on('click', '.milestone.row .edit-milestone-button',function(){
         $row = $(this).parent('.row');
         replaceMilestoneRowWithEditForm($row);
     });
 
     // ### delete button listeners ###
-    $('#task-container').on('click', '.task.row .delete-task-button',function(event){
+    $('#task-container').on('click', '.task.row .delete-task-button',function(){
         var taskId = $(this).parent('.row').attr('data-id');
         deleteTask(taskId);
     });
 
     // ### delete button listeners ###
-    $('#task-container').on('click', '.task.row .delete-milestone-button',function(event){
+    $('#task-container').on('click', '.task.row .delete-milestone-button',function(){
         var milestoneId = $(this).parent('.row').attr('data-id');
-        deleteMilestone(milestoneId);
+        deleteMilestone(milestoneId, false);
+    });
+
+    $('#task-container').on('click', '.reward.row .mark-reward-received-button',function(){
+        // if reward is marked as received delete it's parent milestone
+        var milestoneId = $(this).parent('.row').attr('data-id');
+        deleteMilestone(milestoneId, true);
     });
 
     // ### form submit listeners ###
@@ -93,8 +99,8 @@ $(document).ready(function(){
 
     // ### hide info listeners ###
 
-    $('#task-container').on('click', '.hide-milestones-button', function(event) {
-        $row = $(this).parent('.row');
+    $('#task-container').on('click', '.hide-milestones-button', function() {
+        var $row = $(this).parent('.row');
         $row.find('.hide-milestones-button').remove();
         $row.find('.milestones-holder').remove();
     });
@@ -128,8 +134,8 @@ function replaceTaskRowWithEditForm($row){
             data = data.replace('{{ task.name }}', taskName);
             data = data.replace('{{ task.id }}', taskId );
             $row.html(data);
-            $('#edit-task-form #edit-task-difficulty').val(taskDifficulty);
-            $('#edit-task-form #edit-task-name').focus();
+            $('#edit-task-difficulty').val(taskDifficulty);
+            $('#edit-task-name').focus();
         });
     }
 }
@@ -147,7 +153,7 @@ function replaceMilestoneRowWithEditForm($row){
             data = data.replace('{{ milestone.reward }}', reward);
             data = data.replace('{{ milestone.rewardBudget }}', rewardBudget);
             $row.html(data);
-            $('#edit-milestone-form #edit-milestone-name').focus();
+            $('#edit-milestone-name').focus();
         });
     }
 }
@@ -249,7 +255,7 @@ function showAllDueRewards(){
                     var rewards = result.data;
                     $.each(rewards, function(index, reward){
                         console.log(reward);
-                        var row = '<div id = "reward-row-{{ reward.milestoneId }}" data-id = "{{ reward.milestoneId }}" class = "row reward"><span class = "reward-name">{{ reward.name }}</span><span class = "reward-budget">{{ reward.budget }}</span></div>';
+                        var row = '<div id = "reward-row-{{ reward.milestoneId }}" data-id = "{{ reward.milestoneId }}" class = "row reward"><span class = "reward-name">{{ reward.name }}</span><span class = "reward-budget">{{ reward.budget }}</span><button class = "mark-reward-received-button">got it!</button></div>';
                         row = row.replace('{{ reward.milestoneId }}', reward.milestoneId);
                         row = row.replace('{{ reward.milestoneId }}', reward.milestoneId);
                         row = row.replace('{{ reward.name }}', reward.name);
@@ -269,8 +275,8 @@ function showAllDueRewards(){
 
 // ### post ###
 function createTask(){
-    var taskName = $('#add-task-form #new-task-name').val();
-    var difficulty = $('#add-task-form #new-task-difficulty').find(":selected").text();
+    var taskName = $('#new-task-name').val();
+    var difficulty = $('#new-task-difficulty').find(":selected").text();
     $.ajax(
         {
             url:"http://api.tasklist.dev/task/",
@@ -279,7 +285,7 @@ function createTask(){
             processData: false,
             type : 'POST',
             data: '{"name":"' + taskName + '", "difficulty":"' + difficulty + '"}',
-            success:function(result){
+            success:function(){
                 showAllTasks();
             },
             error: function(jqXHR, textStatus, errorThrown) {
@@ -329,7 +335,7 @@ function patchTask($form){
             processData: false,
             type:"PATCH",
             data: '{"name":"' + taskName + '", "difficulty":"' + taskDifficulty + '"}',
-            success:function(result){
+            success:function(){
                 showAllTasks();
             },
             error: function(jqXHR, textStatus, errorThrown) {
@@ -359,7 +365,7 @@ function patchMilestone($form){
             processData: false,
             type:"PATCH",
             data: JSON.stringify(updatedMilestone),
-            success:function(result){
+            success:function(){
                 showAllTasks();
             },
             error: function(jqXHR, textStatus, errorThrown) {
@@ -395,8 +401,13 @@ function deleteTask(taskId){
     }
 }
 
-function deleteMilestone(milestoneId){
-    var confirmDelete = window.confirm("Are you sure you want to delete this milestone?");
+function deleteMilestone(milestoneId, silent){
+    if (!silent){
+        var confirmDelete = window.confirm("Are you sure you want to delete this milestone?");
+    } else {
+        confirmDelete = true;
+    }
+
     if (confirmDelete) {
         $.ajax(
             {
@@ -406,7 +417,9 @@ function deleteMilestone(milestoneId){
                 success: function (result) {
                     console.log(result);
                     if (result.data) {
-                        alert('deleted milestone ' + result.data.id);
+                        if (!silent){
+                            alert('deleted milestone ' + result.data.id);
+                        }
                         showAllTasks();
                     } else {
                         alert('delete not successful');
@@ -433,9 +446,9 @@ function allMilestonesComplete(milestones){
     var allComplete = true;
     $.each(milestones, function(index, milestone){
         if (milestone.complete == 'false'){
-            return false;
+            allComplete = false;
+            return allComplete;
         }
     });
-    return true;
+    return allComplete;
 }
-
