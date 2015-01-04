@@ -1,6 +1,7 @@
 <form id = "add-task-form">
-    <input type="text" id="new-task-name" name="name" placeholder="Name">
+    <input type="text" id="new-task-name" name="name" placeholder="name">
     <br>
+    difficulty:
     <select name = "difficulty" id="new-task-difficulty">
         <option>1</option>
         <option>2</option>
@@ -8,6 +9,8 @@
         <option>4</option>
         <option>5</option>
     </select>
-    <br>
-    <button id = "add-task">Add Task</button>
+    <div class = "button-holder">
+        <button id = "add-task">add task</button>
+        <button id = "cancel-add-task-button">cancel</button>
+    </div>
 </form>

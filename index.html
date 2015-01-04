@@ -1,6 +1,8 @@
-<html>
+<!doctype html>
+<html lang="en">
     <head>
-        <title>Tasklist</title>
+        <meta charset="utf-8">
+        <title>tasklist</title>
         <!-- js -->
         <script src='js/jquery-2.1.3.min.js'></script>
         <script src = "js/tasklist.js"></script>
@@ -8,13 +10,18 @@
         <link rel="stylesheet" type="text/css" href="css/tasklist.css">
     </head>
     <body>
-        <h1>Tasklist</h1>
-        <nav>
-            <li id = "show-tasks-tab-button">Tasks</li>
-            <li id = "show-rewards-tab-button">Rewards</li>
-        </nav>
-        <div id = "task-container">
+        <section class = "header">
+            <h1>tasklist</h1>
+            <nav class = "tab-buttons">
+                <li id = "show-tasks-tab-button">tasks</li>
+                <li id = "show-rewards-tab-button">rewards</li>
+            </nav>
+        </section>
+        <div id ="data-container">
         </div>
-        <button id="show-add-task-button">Add Task</button>
+        <button id="show-add-task-button">new task</button>
+        <section class = "footer">
+
+        </section>
     </body>
 </html>
