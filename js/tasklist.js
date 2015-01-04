@@ -3,26 +3,49 @@ $(document).ready(function(){
     // todo remove for production
     $.ajaxSetup({ cache: false });
 
-    reloadAll();
+    showAllTasks();
+
+    // ### show create-new form listeners ###
 
     $('#show-add-task-button').click(function(){
-        showInputBox();
+        showCreateNewTaskForm();
     });
+
+    $('#task-container').on('click', '.task.row .show-milestone-form-button',function(event){
+        $row = $(this).parent('.row');
+        showCreateMilestoneForm($row);
+    });
+
+    // ### show edit form listeners ###
+
+    $('#task-container').on('click', '.task.row .edit-task-button',function(event){
+        $row = $(this).parent('.row');
+        replaceTaskRowWithEditForm($row);
+    });
+
+    $('#task-container').on('click', '.milestone.row .edit-milestone-button',function(event){
+        $row = $(this).parent('.row');
+        replaceMilestoneRowWithEditForm($row);
+    });
+
+    // ### delete button listeners ###
+    $('#task-container').on('click', '.task.row .delete-task-button',function(event){
+        var taskId = $(this).parent('.row').attr('data-id');
+        deleteTask(taskId);
+    });
+
+    // ### delete button listeners ###
+    $('#task-container').on('click', '.task.row .delete-milestone-button',function(event){
+        var milestoneId = $(this).parent('.row').attr('data-id');
+        deleteMilestone(milestoneId);
+    });
+
+    // ### form submit listeners ###
 
     $('body').on('click', '#add-task',function(event){
         event.preventDefault();
         $('#add-task-form').hide();
         createTask();
-    });
-
-    $('body').on('click', '.task.row .edit-task-button',function(event){
-        $row = $(this).parent('.row');
-        replaceRowWithForm($row);
-    });
-
-    $('body').on('click', '.task.row .show-milestone-form-button',function(event){
-        $row = $(this).parent('.row');
-        showNewMilestoneForm($row);
     });
 
     $('body').on('click', '.task.row #add-milestone-button',function(event){
@@ -31,22 +54,35 @@ $(document).ready(function(){
         createMilestone($form);
     });
 
+    $('#task-container').on('focusout', '#edit-task-form', function(event){
+        var $form = $(this);
+        setTimeout(function() {
+            if (!event.delegateTarget.contains(document.activeElement)) {
+                patchTask($form);
+                showAllTasks();
+            }
+        });
+    });
+
+    $('#task-container').on('focusout', '#edit-milestone-form', function(event){
+        var $form = $(this);
+        setTimeout(function() {
+            if (!event.delegateTarget.contains(document.activeElement)) {
+                patchMilestone($form);
+                showAllTasks();
+            }
+        });
+    });
+
+    // ### get info listeners ###
+
     $('body').on('click', '.task.row',function(event){
         if($(document.activeElement).closest('.row')[0] != $(this)[0]){
             getMilestonesForTask($(this));
         }
     });
 
-    // only reload if focus is not on child element in form
-    $('#task-container').on('focusout', '#edit-task-form', function(event){
-        var $form = $(this);
-        setTimeout(function() {
-            if (!event.delegateTarget.contains(document.activeElement)) {
-                patchTask($form);
-                reloadAll();
-            }
-        });
-    });
+    // ### hide info listeners ###
 
     $('#task-container').on('click', '.hide-milestones-button', function(event) {
         $row = $(this).parent('.row');
@@ -55,32 +91,26 @@ $(document).ready(function(){
     });
 });
 
-function reloadAll(){
-    $('#task-container').html('');
-    $.ajax(
-        {
-            url:"http://api.tasklist.dev/task/",
-            dataType: "json",
-            type : 'GET',
-            success:function(result){
-                if (result.data) {
-                    after = null;
-                    $.each(result.data, function (index, task) {
-                        insertTaskRow(task.id, task.name, task.difficulty, after);
-                        after = 'task-row-' + task.id;
-                    });
-                } else {
-                    $('#task-container').html('No tasks');
-                }
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-                console.log(errorThrown);
-            }
-        }
-    );
+// ### create-new form showers ###
+function showCreateNewTaskForm(){
+    if (! $('#add-task-form').length ) {
+        $.get('/elements/add_task_form.html', function (data) {
+            $('body').append(data);
+        });
+    }
 }
 
-function replaceRowWithForm($row){
+function showCreateMilestoneForm($row){
+    if (! $row.has('#add-milestone-form').length ) {
+        $.get('/elements/add_milestone_form.html', function (data) {
+            data = data.replace('{{ task.id }}', $row.attr('data-id'));
+            $row.append(data);
+        });
+    }
+}
+
+// ### edit form showers ###
+function replaceTaskRowWithEditForm($row){
     if (! $('#edit-task-form').length ) {
         var taskName = $row.find('.task-name').text();
         var taskDifficulty = $row.attr('data-difficulty');
@@ -95,8 +125,27 @@ function replaceRowWithForm($row){
     }
 }
 
-function insertTaskRow(taskId, taskName, taskDifficulty, after){
-    var row = '<div id = "task-row-{{ task.id }}" data-id = "{{ task.id }}" data-difficulty="{{ task.difficulty }}" class = "row task {{ task.difficultyClass }}"><span class = "task-name">{{ task.name }}</span><button class = "edit-task-button">edit</button><button class = "show-milestone-form-button">add milestone</button></div>';
+function replaceMilestoneRowWithEditForm($row){
+    if (! $('#edit-milestone-form').length ) {
+        var milestoneId = $row.attr('data-id');
+        var milestoneName = $row.find('.milestone-name').text();
+        var reward = $row.find('.milestone-reward').text();
+        var rewardBudget = $row.find('.milestone-reward-budget').text();
+
+        $.get('/elements/edit_milestone_form.html', function (data) {
+            data = data.replace('{{ milestone.id }}', milestoneId );
+            data = data.replace('{{ milestone.name }}', milestoneName);
+            data = data.replace('{{ milestone.reward }}', reward);
+            data = data.replace('{{ milestone.rewardBudget }}', rewardBudget);
+            $row.html(data);
+            $('#edit-milestone-form #edit-milestone-name').focus();
+        });
+    }
+}
+
+// ### info showers ###
+function addTaskRow(taskId, taskName, taskDifficulty, after){
+    var row = '<div id = "task-row-{{ task.id }}" data-id = "{{ task.id }}" data-difficulty="{{ task.difficulty }}" class = "row task {{ task.difficultyClass }}"><span class = "task-name">{{ task.name }}</span><button class = "edit-task-button">edit</button><button class = "show-milestone-form-button">add milestone</button><button class = "delete-task-button">delete</button></div>';
 
     row = row.replace('{{ task.id }}', taskId);
     row = row.replace('{{ task.id }}', taskId);
@@ -110,20 +159,50 @@ function insertTaskRow(taskId, taskName, taskDifficulty, after){
     }
 }
 
-function showInputBox(){
-    if (! $('#add-task-form').length ) {
-        $.get('/elements/add_task_form.html', function (data) {
-            $('body').append(data);
-        });
-    }
+function addMilestonesToRow($row, milestones){
+    $row.append('<button class = "hide-milestones-button">hide milestones</button>');
+    var milestoneHolder = '<div class = "milestones-holder">';
+    $.each(milestones, function(index, milestone){
+
+        if (milestone.complete != 'true') {
+            if (!milestone.reward) {
+                milestone.reward = ''
+            }
+            if (!milestone.rewardBudget) {
+                milestone.rewardBudget = ''
+            }
+            milestoneHolder += '<div class="milestone row" data-id="' + milestone.id + '"><span class = "milestone-name">' + milestone.name + '</span><span class = "milestone-reward">' + milestone.reward + '</span><span class = "milestone-reward-budget">' + milestone.rewardBudget + '</span><button class = "edit-milestone-button">edit</button><button class = "delete-milestone-button">delete</button></div>';
+        }
+    });
+    $row.append(milestoneHolder)
 }
 
-function getDifficultyClass(difficulty){
-    switch (difficulty){
-        case 1: return 'green';
-        case 2: return 'blue';
-        case 3: return 'red';
-    }
+// ###### AJAX requests #######
+
+// ### get ###
+function showAllTasks(){
+    $('#task-container').html('');
+    $.ajax(
+        {
+            url:"http://api.tasklist.dev/task/",
+            dataType: "json",
+            type : 'GET',
+            success:function(result){
+                if (result.data) {
+                    after = null;
+                    $.each(result.data, function (index, task) {
+                        addTaskRow(task.id, task.name, task.difficulty, after);
+                        after = 'task-row-' + task.id;
+                    });
+                } else {
+                    $('#task-container').html('No tasks');
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.log(errorThrown);
+            }
+        }
+    );
 }
 
 function getMilestonesForTask($row){
@@ -135,10 +214,10 @@ function getMilestonesForTask($row){
                 dataType: "json",
                 type : 'GET',
                 success:function(result){
-                    if (result.data){
+                    if (result.data && !allMilestonesComplete(result.data)){
                         addMilestonesToRow($row, result.data);
                     } else {
-                        alert('no milestones exists for that task');
+                        alert('no active milestone exists for that task');
                     }
                 },
                 error: function(jqXHR, textStatus, errorThrown) {
@@ -149,28 +228,11 @@ function getMilestonesForTask($row){
     }
 }
 
-function showNewMilestoneForm($row){
-    if (! $row.has('#add-milestone-form').length ) {
-        $.get('/elements/add_milestone_form.html', function (data) {
-            data = data.replace('{{ task.id }}', $row.attr('data-id'));
-            $row.append(data);
-        });
-    }
+function showDueRewards(){
+    // todo show rewards
 }
 
-function addMilestonesToRow($row, milestones){
-    $row.append('<button class = "hide-milestones-button">hide milestones</button>');
-    var milestoneHolder = '<div class = "milestones-holder">';
-    $.each(milestones, function(index, milestone){
-
-        if (!milestone.reward) { milestone.reward = ''};
-        if (!milestone.rewardBudget) { milestone.rewardBudget = ''};
-
-        milestoneHolder += '<div class="milestone row" data-id="' + milestone.id + '"><span class = "milestone-name">' + milestone.name + '</span><span class = "milestone-reward">' + milestone.reward + '</span><span class = "milestone-reward-budget">' + milestone.rewardBudget + '</span></div>';
-    });
-    $row.append(milestoneHolder)
-}
-
+// ### post ###
 function createTask(){
     var taskName = $('#add-task-form #new-task-name').val();
     var difficulty = $('#add-task-form #new-task-difficulty').find(":selected").text();
@@ -183,7 +245,7 @@ function createTask(){
             type : 'POST',
             data: '{"name":"' + taskName + '", "difficulty":"' + difficulty + '"}',
             success:function(result){
-                reloadAll();
+                showAllTasks();
             },
             error: function(jqXHR, textStatus, errorThrown) {
                 console.log(errorThrown);
@@ -208,7 +270,7 @@ function createMilestone($form){
             //data: '{"name":"' + milestoneName + '", "reward":"' + milestoneReward + '", "milestoneRewardBudget":"' + milestoneRewardBudget + '"}',
             success:function(result){
                 console.log(result);
-                reloadAll();
+                showAllTasks();
             },
             error: function(jqXHR, textStatus, errorThrown) {
                 console.log(errorThrown);
@@ -216,7 +278,9 @@ function createMilestone($form){
         }
     );
 }
+// ### put ###
 
+// ### patch ###
 function patchTask($form){
     var taskId = $form.find('#edit-task-id').val();
     var taskName = $form.find('#edit-task-name').val();
@@ -231,7 +295,7 @@ function patchTask($form){
             type:"PATCH",
             data: '{"name":"' + taskName + '", "difficulty":"' + taskDifficulty + '"}',
             success:function(result){
-                reloadAll();
+                showAllTasks();
             },
             error: function(jqXHR, textStatus, errorThrown) {
                 console.log(errorThrown);
@@ -239,3 +303,104 @@ function patchTask($form){
         }
     );
 }
+
+function patchMilestone($form){
+
+    var milestoneId = $form.find('#edit-milestone-id').val();
+
+    var updatedMilestone = {};
+    updatedMilestone.name = $form.find('#edit-milestone-name').val();
+    updatedMilestone.reward = $form.find('#edit-milestone-reward').val();
+    updatedMilestone.rewardBudget = $form.find('#edit-milestone-reward-budget').val();
+    if ($form.find('#edit-milestone-complete').prop('checked')){
+        updatedMilestone.complete = 'true';
+    }
+
+    $.ajax(
+        {
+            url:"http://api.tasklist.dev/milestone/" + milestoneId + "/",
+            dataType: "json",
+            crossDomain: true,
+            processData: false,
+            type:"PATCH",
+            data: JSON.stringify(updatedMilestone),
+            success:function(result){
+                showAllTasks();
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.log(errorThrown);
+            }
+        }
+    );
+}
+
+// ### delete ###
+function deleteTask(taskId){
+    var confirmDelete = window.confirm("Are you sure you want to delete this task?");
+    if (confirmDelete) {
+        $.ajax(
+            {
+                url: "http://api.tasklist.dev/task/" + taskId + "/",
+                dataType: "json",
+                type: 'DELETE',
+                success: function (result) {
+                    console.log(result);
+                    if (result.data) {
+                        alert('deleted task ' + result.data.id);
+                        showAllTasks();
+                    } else {
+                        alert('delete not successful');
+                    }
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.log(errorThrown);
+                }
+            }
+        );
+    }
+}
+
+function deleteMilestone(milestoneId){
+    var confirmDelete = window.confirm("Are you sure you want to delete this milestone?");
+    if (confirmDelete) {
+        $.ajax(
+            {
+                url: "http://api.tasklist.dev/milestone/" + milestoneId + "/",
+                dataType: "json",
+                type: 'DELETE',
+                success: function (result) {
+                    console.log(result);
+                    if (result.data) {
+                        alert('deleted milestone ' + result.data.id);
+                        showAllTasks();
+                    } else {
+                        alert('delete not successful');
+                    }
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.log(errorThrown);
+                }
+            }
+        );
+    }
+}
+
+// ### other helpers ###
+function getDifficultyClass(difficulty){
+    switch (difficulty){
+        case 1: return 'green';
+        case 2: return 'blue';
+        case 3: return 'red';
+    }
+}
+
+function allMilestonesComplete(milestones){
+    var allComplete = true;
+    $.each(milestones, function(index, milestone){
+        if (milestone.complete == 'false'){
+            return false;
+        }
+    });
+    return true;
+}
+
