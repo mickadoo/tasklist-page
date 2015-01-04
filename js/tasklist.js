@@ -59,8 +59,9 @@ $(document).ready(function(){
 
     $('body').on('click', '#add-task',function(event){
         event.preventDefault();
-        $('#add-task-form').hide();
-        createTask();
+        var $form = $('#add-task-form');
+        createTask($form);
+        $('#add-task-form').remove();
     });
 
     $('body').on('click', '.task.row #add-milestone-button',function(event){
@@ -103,6 +104,11 @@ $(document).ready(function(){
         var $row = $(this).parent('.row');
         $row.find('.hide-milestones-button').remove();
         $row.find('.milestones-holder').remove();
+    });
+
+    $('#task-container').on('click', '#cancel-add-milestone-button', function(event) {
+        event.preventDefault();
+        $('#add-milestone-form').remove();
     });
 });
 
@@ -273,9 +279,13 @@ function showAllDueRewards(){
 }
 
 // ### post ###
-function createTask(){
-    var taskName = $('#new-task-name').val();
-    var difficulty = $('#new-task-difficulty').find(":selected").text();
+function createTask($form){
+
+    var task = {};
+
+    task.name = $form.find('#new-task-name').val();
+    task.difficulty = $form.find('#new-task-difficulty').find(":selected").text();
+
     $.ajax(
         {
             url:"http://api.tasklist.dev/task/",
@@ -283,7 +293,7 @@ function createTask(){
             crossDomain: true,
             processData: false,
             type : 'POST',
-            data: '{"name":"' + taskName + '", "difficulty":"' + difficulty + '"}',
+            data: JSON.stringify(task),
             success:function(){
                 showAllTasks();
             },
@@ -296,9 +306,13 @@ function createTask(){
 
 function createMilestone($form){
     var parentId = $form.find('#new-milestone-parent-id').val();
-    var milestoneName = $form.find('#new-milestone-name').val();
-    var milestoneReward = $form.find('#new-milestone-reward').val();
-    var milestoneRewardBudget = $form.find('#new-milestone-reward-budget').val();
+
+    var milestone = {};
+
+    milestone.name = $form.find('#new-milestone-name').val();
+    milestone.reward = $form.find('#new-milestone-reward').val();
+    milestone.rewardBudget = $form.find('#new-milestone-reward-budget').val();
+
     $.ajax(
         {
             url:"http://api.tasklist.dev/task/" + parentId + "/milestone/",
@@ -306,7 +320,7 @@ function createMilestone($form){
             crossDomain: true,
             processData: false,
             type : 'POST',
-            data: '{"name":"' + milestoneName + '", "reward":"' + milestoneReward + '", "rewardBudget":"' + milestoneRewardBudget + '"}',
+            data: JSON.stringify(milestone),
             //data: '{"name":"' + milestoneName + '", "reward":"' + milestoneReward + '", "milestoneRewardBudget":"' + milestoneRewardBudget + '"}',
             success:function(result){
                 showAllTasks();
@@ -322,8 +336,10 @@ function createMilestone($form){
 // ### patch ###
 function patchTask($form){
     var taskId = $form.find('#edit-task-id').val();
-    var taskName = $form.find('#edit-task-name').val();
-    var taskDifficulty = $form.find('#edit-task-difficulty').find(":selected").text();
+
+    var task = {};
+    task.name = $form.find('#edit-task-name').val();
+    task.difficulty = $form.find('#edit-task-difficulty').find(":selected").text();
 
     $.ajax(
         {
@@ -332,7 +348,7 @@ function patchTask($form){
             crossDomain: true,
             processData: false,
             type:"PATCH",
-            data: '{"name":"' + taskName + '", "difficulty":"' + taskDifficulty + '"}',
+            data: JSON.stringify(task),
             success:function(){
                 showAllTasks();
             },
@@ -351,6 +367,7 @@ function patchMilestone($form){
     updatedMilestone.name = $form.find('#edit-milestone-name').val();
     updatedMilestone.reward = $form.find('#edit-milestone-reward').val();
     updatedMilestone.rewardBudget = $form.find('#edit-milestone-reward-budget').val();
+
     if ($form.find('#edit-milestone-complete').prop('checked')){
         updatedMilestone.complete = 'true';
     }
@@ -431,8 +448,10 @@ function deleteMilestone(milestoneId, silent){
 function getDifficultyClass(difficulty){
     switch (difficulty){
         case 1: return 'green';
-        case 2: return 'blue';
-        case 3: return 'red';
+        case 2: return 'light-blue';
+        case 3: return 'blue';
+        case 4: return 'orange';
+        case 5: return 'red';
     }
 }
 

@@ -5,12 +5,18 @@
 }
 
 /* colors */
-.red {
-    background-color : rgb(250, 150, 150);
+.green {
+    background-color : rgb(150, 250, 150);
+}
+.light-blue {
+    background-color : rgb(170, 220, 250);
 }
 .blue {
     background-color : rgb(150, 150, 250);
 }
-.green {
-    background-color : rgb(150, 250, 150);
+.orange {
+    background-color : rgb(250, 180, 120);
+}
+.red {
+    background-color : rgb(250, 10, 10);
 }
