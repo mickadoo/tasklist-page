@@ -1,9 +1,6 @@
-var API_URL = "http://api.tasklist.dev/task/";
+var API_URL = "http://api.tasklist.dev";
 
 $(document).ready(function(){
-
-    // todo remove for production
-    $.ajaxSetup({ cache: false });
 
     showAllTasks();
 
@@ -223,7 +220,7 @@ function showAllTasks(){
     $('#data-container').html('');
     $.ajax(
         {
-            url:"http://api.tasklist.dev/task/",
+            url: API_URL + "/task/",
             dataType: "json",
             type : 'GET',
             success:function(result){
@@ -249,7 +246,7 @@ function getMilestonesForTask($row){
         var taskId = $row.attr('data-id');
         $.ajax(
             {
-                url:"http://api.tasklist.dev/task/" + taskId + "/milestone/",
+                url:API_URL + "/task/" + taskId + "/milestone/",
                 dataType: "json",
                 type : 'GET',
                 success:function(result){
@@ -271,7 +268,7 @@ function showAllDueRewards(){
     $('#data-container').html('');
     $.ajax(
         {
-            url:"http://api.tasklist.dev/reward/get-complete/",
+            url:API_URL + "/reward/get-complete/",
             dataType: "json",
             type : 'GET',
             success:function(result){
@@ -306,7 +303,7 @@ function createTask($form){
 
     $.ajax(
         {
-            url:"http://api.tasklist.dev/task/",
+            url:API_URL + "/task/",
             dataType: "json",
             crossDomain: true,
             processData: false,
@@ -333,7 +330,7 @@ function createMilestone($form){
 
     $.ajax(
         {
-            url:"http://api.tasklist.dev/task/" + parentId + "/milestone/",
+            url: API_URL + "/task/" + parentId + "/milestone/",
             dataType: "json",
             crossDomain: true,
             processData: false,
@@ -361,7 +358,7 @@ function patchTask($form){
 
     $.ajax(
         {
-            url:"http://api.tasklist.dev/task/" + taskId + "/",
+            url: API_URL + "/task/" + taskId + "/",
             dataType: "json",
             crossDomain: true,
             processData: false,
@@ -392,7 +389,7 @@ function patchMilestone($form){
 
     $.ajax(
         {
-            url:"http://api.tasklist.dev/milestone/" + milestoneId + "/",
+            url: API_URL + "/milestone/" + milestoneId + "/",
             dataType: "json",
             crossDomain: true,
             processData: false,
@@ -414,7 +411,7 @@ function deleteTask(taskId){
     if (confirmDelete) {
         $.ajax(
             {
-                url: "http://api.tasklist.dev/task/" + taskId + "/",
+                url: API_URL + "/task/" + taskId + "/",
                 dataType: "json",
                 type: 'DELETE',
                 success: function (result) {
@@ -443,7 +440,7 @@ function deleteMilestone(milestoneId, silent){
     if (confirmDelete) {
         $.ajax(
             {
-                url: API_URL + milestoneId + "/",
+                url: API_URL + "/milestone/" + milestoneId + "/",
                 dataType: "json",
                 type: 'DELETE',
                 success: function (result) {
