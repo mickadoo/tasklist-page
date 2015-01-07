@@ -1,3 +1,5 @@
+var API_URL = "http://api.tasklist.dev/task/";
+
 $(document).ready(function(){
 
     // todo remove for production
@@ -441,7 +443,7 @@ function deleteMilestone(milestoneId, silent){
     if (confirmDelete) {
         $.ajax(
             {
-                url: "http://api.tasklist.dev/milestone/" + milestoneId + "/",
+                url: API_URL + milestoneId + "/",
                 dataType: "json",
                 type: 'DELETE',
                 success: function (result) {
