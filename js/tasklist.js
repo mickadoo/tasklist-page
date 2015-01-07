@@ -1,4 +1,4 @@
-var API_URL = "http://api.tasklist.dev";
+var API_URL = "http://tasklist-api.michaeldevery.com";
 
 $(document).ready(function(){
 
