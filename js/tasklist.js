@@ -1,4 +1,6 @@
- var API_URL = "http://tasklist-api.michaeldevery.com";
+var API_URL = "http://tasklist-api.michaeldevery.com";
+//var API_URL = "http://api.tasklist.dev";
+
 
 $(document).ready(function(){
 
@@ -73,7 +75,6 @@ $(document).ready(function(){
         setTimeout(function() {
             if (!event.delegateTarget.contains(document.activeElement)) {
                 patchTask($form);
-                showAllTasks();
             }
         }, 0);
     });
@@ -83,7 +84,6 @@ $(document).ready(function(){
         setTimeout(function() {
             if (!event.delegateTarget.contains(document.activeElement)) {
                 patchMilestone($form);
-                showAllTasks();
             }
         }, 0);
     });
@@ -442,7 +442,6 @@ function deleteMilestone(milestoneId, silent){
                 dataType: "json",
                 type: 'DELETE',
                 success: function (result) {
-                    console.log(result);
                     if (result.data) {
                         showAllTasks();
                     } else {
