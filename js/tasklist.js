@@ -1,4 +1,5 @@
-var API_URL = "http://tasklist-api.michaeldevery.com";
+// var API_URL = "http://tasklist-api.michaeldevery.com";
+var API_URL = "http://api.tasklist.dev";
 
 $(document).ready(function(){
 
@@ -226,7 +227,8 @@ function showAllTasks(){
             success:function(result){
                 if (result.data) {
                     var after = null;
-                    $.each(result.data, function (index, task) {
+                    var sortedTasks = sortTasksByDifficulty(result.data);
+                    $.each(sortedTasks, function (index, task) {
                         addTaskRow(task.id, task.name, task.difficulty, after);
                         after = 'task-row-' + task.id;
                     });
@@ -479,4 +481,19 @@ function allMilestonesComplete(milestones){
         }
     });
     return allComplete;
+}
+
+function sortTasksByDifficulty(tasks){
+
+    function compareDifficulty(a, b){
+        if (a.difficulty < b.difficulty)
+            return -1;
+        if (a.difficulty > b.difficulty)
+            return 1;
+        return 0;
+    }
+
+    var sortedTasks = tasks.sort(compareDifficulty);
+
+    return sortedTasks;
 }
