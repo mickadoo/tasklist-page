@@ -43,7 +43,6 @@ $(document).ready(function(){
         deleteTask(taskId);
     });
 
-    // ### delete button listeners ###
     $('#data-container').on('click', '.task.row .delete-milestone-button',function(){
         var milestoneId = $(this).parent('.row').attr('data-id');
         deleteMilestone(milestoneId, false);
@@ -94,17 +93,18 @@ $(document).ready(function(){
 
     $('body').on('click', '.task.row',function(event){
         if($(document.activeElement).closest('.row')[0] != $(this)[0]){
-            getMilestonesForTask($(this));
+            if (! $(this).has('.milestones-holder').length) {
+                getMilestonesForTask($(this));
+            } else {
+                // if clicked on task row heading, hide elements
+                if (! $(event.target).closest('.row').hasClass('milestone')){
+                   $(this).find('.milestones-holder').remove();
+                }
+            }
         }
     });
 
     // ### hide info listeners ###
-
-    $('#data-container').on('click', '.hide-milestones-button', function() {
-        var $row = $(this).parent('.row');
-        $row.find('.hide-milestones-button').remove();
-        $row.find('.milestones-holder').remove();
-    });
 
     $('#data-container').on('click', '#cancel-add-milestone-button', function(event) {
         event.preventDefault();
@@ -172,7 +172,7 @@ function replaceMilestoneRowWithEditForm($row){
 
 // ### info showers ###
 function addTaskRow(taskId, taskName, taskDifficulty, after){
-    var row = '<div id = "task-row-{{ task.id }}" data-id = "{{ task.id }}" data-difficulty="{{ task.difficulty }}" class = "row task {{ task.difficultyClass }}"><span class = "task-name">{{ task.name }}</span><button class = "edit-task-button">edit</button><button class = "show-milestone-form-button">add milestone</button><button class = "delete-task-button">delete</button></div>';
+    var row = '<div id = "task-row-{{ task.id }}" data-id = "{{ task.id }}" data-difficulty="{{ task.difficulty }}" class = "row task {{ task.difficultyClass }}"><span class = "task-name">{{ task.name }}</span><button class = "edit-task-button">edit</button><button class = "show-milestone-form-button">➕</button><button class = "delete-task-button">✖</button></div>';
 
     row = row.replace('{{ task.id }}', taskId);
     row = row.replace('{{ task.id }}', taskId);
@@ -187,7 +187,6 @@ function addTaskRow(taskId, taskName, taskDifficulty, after){
 }
 
 function addMilestonesToRow($row, milestones){
-    $row.append('<button class = "hide-milestones-button">hide milestones</button>');
     var milestoneHolder = '<div class = "milestones-holder">';
     $.each(milestones, function(index, milestone){
 
@@ -208,7 +207,7 @@ function addMilestonesToRow($row, milestones){
             if (milestone.rewardBudget > 0) {
                 priceBlock = ' (up to <span class = "milestone-reward-budget">' + milestone.rewardBudget + '</span> euro)';
             }
-            milestoneHolder += '<div class="milestone row" data-id="' + milestone.id + '"><span class = "milestone-name">' + milestone.name + '</span> to get ' + rewardBlock + priceBlock + '<button class = "edit-milestone-button">edit</button><button class = "delete-milestone-button">delete</button></div>';
+            milestoneHolder += '<div class="milestone row" data-id="' + milestone.id + '"><span class = "milestone-name">' + milestone.name + '</span> to get ' + rewardBlock + priceBlock + '<button class = "edit-milestone-button">edit</button><button class = "delete-milestone-button">✖</button></div>';
         }
     });
     $row.append(milestoneHolder)
@@ -244,26 +243,24 @@ function showAllTasks(){
 }
 
 function getMilestonesForTask($row){
-    if (!$row.has('.milestones-holder').length){
-        var taskId = $row.attr('data-id');
-        $.ajax(
-            {
-                url:API_URL + "/task/" + taskId + "/milestone/",
-                dataType: "json",
-                type : 'GET',
-                success:function(result){
-                    if (result.data && !allMilestonesComplete(result.data)){
-                        addMilestonesToRow($row, result.data);
-                    } else {
-                        alert('no active milestone exists for that task');
-                    }
-                },
-                error: function(jqXHR, textStatus, errorThrown) {
-                    console.log(errorThrown);
+    var taskId = $row.attr('data-id');
+    $.ajax(
+        {
+            url:API_URL + "/task/" + taskId + "/milestone/",
+            dataType: "json",
+            type : 'GET',
+            success:function(result){
+                if (result.data && !allMilestonesComplete(result.data)){
+                    addMilestonesToRow($row, result.data);
+                } else {
+                    alert('no active milestone exists for that task');
                 }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.log(errorThrown);
             }
-        );
-    }
+        }
+    );
 }
 
 function showAllDueRewards(){

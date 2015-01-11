@@ -1,7 +1,7 @@
 * {
     margin: 0;
     padding: 0;
-    transition: all 0.3s ease, background-position 1ms;
+    font-family: 'Cutive Mono';
 }
 
 body {
@@ -18,18 +18,24 @@ nav li {
     display : inline-block;
     list-style: none;
     margin : 10px;
+    cursor : pointer;
 }
 
 button {
     margin : 2px;
     padding : 2px;
     float : right;
+    cursor: pointer;
 }
 
 .row {
     padding: 10px 10px;
     margin : 5px auto;
     clear : both;
+}
+
+.task.row {
+    cursor: pointer;
 }
 
 .milestone.row:before {
@@ -51,6 +57,10 @@ button {
     font-weight: bold;
     margin: auto;
     font-size: 1.2em;
+}
+
+.show-milestone-form-button {
+    font-weight : bold;
 }
 
 #add-task-form {
