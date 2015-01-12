@@ -1,7 +1,3 @@
-var API_URL = "http://tasklist-api.michaeldevery.com";
-//var API_URL = "http://api.tasklist.dev";
-
-
 $(document).ready(function(){
 
     showAllTasks();
@@ -199,14 +195,14 @@ function addMilestonesToRow($row, milestones){
             var priceBlock = '';
             var rewardBlock = '';
             if (milestone.reward) {
-               rewardBlock = '<span class = "milestone-reward">' + milestone.reward + '</span>'
+               rewardBlock = ' to get  <span class = "milestone-reward">' + milestone.reward + '</span>'
             } else {
-                rewardBlock = '<span class = "milestone-reward"></span>nothing...'
+                rewardBlock = '<span class = "milestone-reward"></span>'
             }
             if (milestone.rewardBudget > 0) {
                 priceBlock = ' (up to <span class = "milestone-reward-budget">' + milestone.rewardBudget + '</span> euro)';
             }
-            milestoneHolder += '<div class="milestone row" data-id="' + milestone.id + '"><span class = "milestone-name">' + milestone.name + '</span> to get ' + rewardBlock + priceBlock + '<button class = "edit-milestone-button">edit</button><button class = "delete-milestone-button">✖</button></div>';
+            milestoneHolder += '<div class="milestone row" data-id="' + milestone.id + '"><span class = "milestone-name">' + milestone.name + '</span>' + rewardBlock + priceBlock + '<button class = "edit-milestone-button">edit</button><button class = "delete-milestone-button">✖</button></div>';
         }
     });
     $row.append(milestoneHolder)
